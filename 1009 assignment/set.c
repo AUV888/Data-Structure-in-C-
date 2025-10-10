@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define initial_vol 5
+#define a 15
 typedef struct SET set;
 typedef int elem;
 
