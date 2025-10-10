@@ -60,7 +60,7 @@ int SetInsert(set *s, elem val)
     if (s->len == s->vol)
     {
         int prev_vol = s->vol;
-        elem *new_data = malloc((prev_vol + initial_vol) * sizeof(elem));
+        elem *new_data = (elem *)malloc((prev_vol + initial_vol) * sizeof(elem));
         if (new_data == NULL)
             return 0;
         memcpy(new_data, s->data, prev_vol * sizeof(elem));
@@ -125,7 +125,7 @@ int SetUnion(set sa, set sb, set *sc)
         return 0;
     if (sc->data)
         free(sc->data);
-    sc->data = malloc((sa.len + sb.len) * sizeof(elem));
+    sc->data = (elem *)malloc((sa.len + sb.len) * sizeof(elem));
     if (sc->data == NULL)
         return 0;
     sc->vol = sa.len + sb.len;
@@ -138,6 +138,7 @@ int SetUnion(set sa, set sb, set *sc)
         {
             sc->data[top] = sb.data[i];
             sc->len++;
+            top++;
         }
     }
     return 1;
@@ -150,7 +151,7 @@ int SetIntersection(set sa, set sb, set *sc)
     if (sc->data)
         free(sc->data);
     int minimum_vol = sa.len > sb.len ? sb.len : sa.len;
-    sc->data = malloc(minimum_vol * sizeof(elem));
+    sc->data = (elem *)malloc(minimum_vol * sizeof(elem));
     sc->len = 0;
     if (sc->data == NULL)
         return 0;
@@ -167,6 +168,46 @@ int SetIntersection(set sa, set sb, set *sc)
 
 void TestFunctions(void) // For testing the program only
 {
+    int a[] = {3, 5, 6, 7, 7, 6, 2}, b[] = {1, 4, 5, 6, 9, -11, 13, 19};
+    set sa, sb, sc;
+    InitSet(&sa);
+    InitSet(&sb);
+    InitSet(&sc);
+    printf("test initialize:\n");
+    DebugPrintSet(&sa);
+    DebugPrintSet(&sb);
+    DebugPrintSet(&sc);
+    for (int i = 0; i < 7; i++)
+        SetInsert(&sa, a[i]);
+    for (int i = 0; i < 8; i++)
+        SetInsert(&sb, b[i]);
+
+    printf("\ntest if A and B are inserted correctly:\n");
+    DebugPrintSet(&sa);
+    DebugPrintSet(&sb);
+    printf("\ntest erase function:\n");
+    SetErase(&sa, 12);
+    SetErase(&sa, 6);
+    DebugPrintSet(&sa);
+    printf("\ntest find function in A:\n");
+    printf("find 6: %d\tfind 15: %d\n", SetFind(sa, 6), SetFind(sa, 15));
+    printf("\ntest size function:\nA size: %d\tB size:%d\n", SetSize(sa), SetSize(sb));
+    printf("\ntest intersection:\n");
+    SetIntersection(sa, sb, &sc);
+    DebugPrintSet(&sc);
+    printf("\ntest union:\n");
+    SetUnion(sa, sb, &sc);
+    DebugPrintSet(&sc);
+    printf("\ntest clear:\n");
+    SetClear(&sc);
+    DebugPrintSet(&sc);
+    printf("\ntest destroy:\n");
+    DestroySet(&sa);
+    DestroySet(&sb);
+    DestroySet(&sc);
+    DebugPrintSet(&sa);
+    DebugPrintSet(&sb);
+    DebugPrintSet(&sc);
     return;
 }
 
@@ -182,7 +223,7 @@ void DebugPrintSet(set *s) // For debug use only
         fprintf(stderr, "Data in Set Not Available\n");
         return;
     }
-    if (s->vol <= s->len || s->vol == 0)
+    if (s->vol < s->len || s->vol == 0)
     {
         fprintf(stderr, "The Set Has No Volume\n");
         return;
