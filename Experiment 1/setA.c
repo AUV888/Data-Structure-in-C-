@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define SIZE_OF_SET 65536
 
 struct SET
 {
@@ -28,6 +29,13 @@ int DestroySet(set *s)
 }
 int SetInsert(set *s, int val)
 {
+    if (s == NULL || s->data == NULL || val >= SIZE_OF_SET)
+        return 0;
+    int row = val >> 3;
+    int col = val - (val >> 3) << 3;
+    char mask = 0x80 >> col;
+    s->data[row] |= mask;
+    return 1;
 }
 int SetErase(set *s, int val)
 {
