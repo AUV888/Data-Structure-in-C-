@@ -7,8 +7,8 @@ typedef int elem;
 
 struct SET
 {
-    int len;
-    int vol;
+    long len;
+    long vol;
     elem *data;
 };
 int InitSet(set *s);
@@ -17,7 +17,7 @@ int SetInsert(set *s, elem val);
 int SetErase(set *s, elem val);
 int SetClear(set *s);
 int SetFind(set s, elem val);
-int SetSize(set s);
+long SetSize(set s);
 int SetUnion(set sa, set sb, set *sc);
 int SetIntersection(set sa, set sb, set *sc);
 void TestFunctions(void);   // For testing the program only
@@ -59,7 +59,7 @@ int SetInsert(set *s, elem val)
         return 1;
     if (s->len == s->vol)
     {
-        int prev_vol = s->vol;
+        long prev_vol = s->vol;
         elem *new_data = (elem *)malloc((prev_vol + initial_vol) * sizeof(elem));
         if (new_data == NULL)
             return 0;
@@ -77,8 +77,8 @@ int SetErase(set *s, elem val)
 {
     if (s == NULL || s->data == NULL || !SetFind(*s, val))
         return 0;
-    int pos = -1;
-    for (int i = 0; i < s->len; i++)
+    long pos = -1;
+    for (long i = 0; i < s->len; i++)
     {
         if (s->data[i] == val)
         {
@@ -86,7 +86,7 @@ int SetErase(set *s, elem val)
             break;
         }
     }
-    for (int i = pos; i < s->len - 1; i++)
+    for (long i = pos; i < s->len - 1; i++)
         s->data[i] = s->data[i + 1];
     s->len--;
     return 1;
@@ -104,7 +104,7 @@ int SetFind(set s, elem val)
 {
     if (s.data == NULL)
         return 0;
-    for (int i = 0; i < s.len; i++)
+    for (long i = 0; i < s.len; i++)
     {
         if (s.data[i] == val)
             return 1;
@@ -112,7 +112,7 @@ int SetFind(set s, elem val)
     return 0;
 }
 
-int SetSize(set s)
+long SetSize(set s)
 {
     if (s.data == NULL)
         return 0;
@@ -131,8 +131,8 @@ int SetUnion(set sa, set sb, set *sc)
     sc->vol = sa.len + sb.len;
     memcpy(sc->data, sa.data, sa.len * sizeof(elem));
     sc->len = sa.len;
-    int top = sa.len;
-    for (int i = 0; i < sb.len; i++)
+    long top = sa.len;
+    for (long i = 0; i < sb.len; i++)
     {
         if (!SetFind(*sc, sb.data[i]))
         {
@@ -150,12 +150,12 @@ int SetIntersection(set sa, set sb, set *sc)
         return 0;
     if (sc->data)
         free(sc->data);
-    int minimum_vol = sa.len > sb.len ? sb.len : sa.len;
+    long minimum_vol = sa.len > sb.len ? sb.len : sa.len;
     sc->data = (elem *)malloc(minimum_vol * sizeof(elem));
     sc->len = 0;
     if (sc->data == NULL)
         return 0;
-    for (int i = 0; i < sb.len; i++)
+    for (long i = 0; i < sb.len; i++)
     {
         if (SetFind(sa, sb.data[i]))
         {
@@ -191,7 +191,7 @@ void TestFunctions(void) // For testing the program only
     DebugPrintSet(&sa);
     printf("\ntest find function in A:\n");
     printf("find 6: %d\tfind 15: %d\n", SetFind(sa, 6), SetFind(sa, 15));
-    printf("\ntest size function:\nA size: %d\tB size:%d\n", SetSize(sa), SetSize(sb));
+    printf("\ntest size function:\nA size: %ld\tB size:%ld\n", SetSize(sa), SetSize(sb));
     printf("\ntest intersection:\n");
     SetIntersection(sa, sb, &sc);
     DebugPrintSet(&sc);
@@ -233,7 +233,7 @@ void DebugPrintSet(set *s) // For debug use only
         printf("Empty Set\n");
         return;
     }
-    for (int i = 0; i < s->len; i++)
+    for (long i = 0; i < s->len; i++)
     {
         printf("%d ", s->data[i]);
     }
