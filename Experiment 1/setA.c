@@ -49,6 +49,6 @@ int SetFind(set *s, int val)
 int SetSize(set s, int val)
 {
 }
-int SetUnion(set sa, set sb, set *sc)
+int SetIntersection(set sa, set sb, set *sc)
 {
 }
