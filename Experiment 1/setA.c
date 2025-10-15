@@ -54,11 +54,8 @@ int DestroySet(set **s)
 {
     if ((*s) == NULL || (*s)->data == NULL)
         return 0;
-    if ((*s)->data != NULL)
-    {
-        free((*s)->data);
-        (*s)->data = NULL;
-    }
+    free((*s)->data);
+    (*s)->data = NULL;
     free(*s);
     *s = NULL;
     return 1;
