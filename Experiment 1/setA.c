@@ -18,9 +18,12 @@ int SetClear(set *);
 int SetFind(set *, int);
 int SetSize(set);
 int SetIntersection(set, set, set *);
+void TestFunctions(void);
+void PrintSet(set *s);
 
 int main()
 {
+    TestFunctions();
     return 0;
 }
 int InitSet(set *s)
@@ -113,4 +116,61 @@ int SetIntersection(set sa, set sb, set *sc)
         sc->len += popcount_table[sc->data[i]];
     }
     return 1;
+}
+void TestFunctions(void)
+{
+    set *a, *b, *c;
+    a = (set *)malloc(sizeof(set));
+    b = (set *)malloc(sizeof(set));
+    c = (set *)malloc(sizeof(set));
+    printf("Init Set a,b,c: %d %d %d\n", InitSet(a), InitSet(b), InitSet(c));
+    SetInsert(a, 3);
+    SetInsert(a, 2147);
+    SetInsert(a, 65535);
+    printf("a is: ");
+    PrintSet(a);
+    SetErase(a, 2147);
+    SetErase(a, 5555);
+    printf("After erase, a is: ");
+    PrintSet(a);
+    printf("a length is: %d\n", SetSize(*a));
+    SetInsert(b, 5);
+    SetInsert(b, 9876);
+    SetInsert(b, 65535);
+    SetInsert(b, 1234);
+    printf("b is: ");
+    PrintSet(b);
+    SetIntersection(*a, *b, c);
+    printf("c is: ");
+    PrintSet(c);
+    printf("c length is: %d\n", SetSize(*c));
+    SetClear(a);
+    printf("after clear, a is: ");
+    PrintSet(a);
+    DestroySet(&a);
+    printf("after destory, a is: ");
+    PrintSet(a);
+    DestroySet(&b);
+    DestroySet(&c);
+}
+void PrintSet(set *s)
+{
+    if (!s)
+    {
+        printf("no such set\n");
+        return;
+    }
+    int flag = 0;
+    for (int i = 0; i < 65536; i++)
+    {
+        if (SetFind(s, i))
+        {
+            printf("%d ", i);
+            flag++;
+        }
+    }
+    if (!flag)
+        printf("empty");
+    printf("\n");
+    return;
 }
