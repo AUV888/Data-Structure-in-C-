@@ -23,7 +23,7 @@ int SetInsert(set *, char *);
 int SetErase(set *, char *);
 int SetClear(set *);
 int SetFind(set *, char *);
-int SetSize(set, char *);
+int SetSize(set);
 int SetUnion(set *, set *, set *);
 void RandomInsert(set *);
 void RandomFind(set *);
@@ -47,9 +47,7 @@ int InitSet(set **s)
 {
     *s = (set *)malloc(sizeof(set));
     if (!*s)
-    {
         return 0;
-    }
     (*s)->len = 0;
     (*s)->head = NULL;
     return 1;
@@ -58,15 +56,15 @@ int DestroySet(set **s)
 {
     if (!s || !*s)
         return 0;
-        node *current = (*s)->head;
-        node *next_node;
-        while (current != NULL)
-        {
-            next_node = current->next;
-            free(current->text);
-            free(current);
-            current = next_node;
-        }
+    node *current = (*s)->head;
+    node *next_node;
+    while (current != NULL)
+    {
+        next_node = current->next;
+        free(current->text);
+        free(current);
+        current = next_node;
+    }
     *s = NULL;
     return 1;
 }
@@ -96,22 +94,26 @@ int SetErase(set *s, char *t)
         return 0;
     node *current = s->head;
     node *previous = NULL;
+    long dest_len = strlen(t);
     while (current != NULL)
     {
-        if (strcmp(current->text, t) == 0)
+        if (current->string_len == dest_len)
         {
-            if (previous == NULL)
+            if (strcmp(current->text, t) == 0)
             {
-                s->head = current->next;
+                if (previous == NULL)
+                {
+                    s->head = current->next;
+                }
+                else
+                {
+                    previous->next = current->next;
+                }
+                free(current->text);
+                free(current);
+                s->len--;
+                return 1;
             }
-            else
-            {
-                previous->next = current->next;
-            }
-            free(current->text);
-            free(current);
-            s->len--;
-            return 1;
         }
         previous = current;
         current = current->next;
@@ -120,11 +122,11 @@ int SetErase(set *s, char *t)
 }
 int SetClear(set *s)
 {
-    if(!s)
+    if (!s)
         return 0;
-    node* current = s->head;
-    node* next_node;
-    while(current != NULL)
+    node *current = s->head;
+    node *next_node;
+    while (current != NULL)
     {
         next_node = current->next;
         free(current->text);
@@ -140,11 +142,15 @@ int SetFind(set *s, char *t)
     if (!s || !t)
         return 0;
     node *current = s->head;
+    long dest_len = strlen(t);
     while (current != NULL)
     {
-        if (strcmp(current->text, t) == 0)
+        if (current->string_len == dest_len)
         {
-            return 1;
+            if (strcmp(current->text, t) == 0)
+            {
+                return 1;
+            }
         }
         current = current->next;
     }
@@ -152,7 +158,7 @@ int SetFind(set *s, char *t)
 }
 int SetSize(set s)
 {
-   return s.len;
+    return s.len;
 }
 int SetUnion(set *sa, set *sb, set *sc)
 {
@@ -218,7 +224,7 @@ void RandomFind(set *s)
     int len, cnt = 0, found = 0;
     while (fscanf(fp, "%d", &len) == 1)
     {
-        if (cnt % 2000 == 0)
+        if (cnt % 1000 == 0)
             printf("Finding: %d / 100000\r", cnt);
         if (len == -1)
         {
@@ -232,12 +238,12 @@ void RandomFind(set *s)
         }
         fscanf(fp, "%s", word);
         word[len] = '\0';
-        if(SetFind(s,word))
+        if (SetFind(s, word))
             found++;
-        
+
         cnt++;
     }
-    printf("\nFound: %d / 100000\n");
+    printf("\nFound: %d / 100000\n", found);
     fclose(fp);
     return;
 }
@@ -252,7 +258,7 @@ void RandomErase(set *s)
     int len, cnt = 0, erased = 0;
     while (fscanf(fp, "%d", &len) == 1)
     {
-        if (cnt % 2000 == 0)
+        if (cnt % 1000 == 0)
             printf("Erasing: %d / 500000\r", cnt);
         if (len == -1)
         {
