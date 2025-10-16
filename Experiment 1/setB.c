@@ -45,27 +45,135 @@ int main()
 }
 int InitSet(set **s)
 {
+    *s = (set *)malloc(sizeof(set));
+    if (!*s)
+    {
+        return 0;
+    }
+    (*s)->len = 0;
+    (*s)->head = NULL;
+    return 1;
 }
 int DestroySet(set **s)
 {
+    if (!s || !*s)
+        return 0;
+        node *current = (*s)->head;
+        node *next_node;
+        while (current != NULL)
+        {
+            next_node = current->next;
+            free(current->text);
+            free(current);
+            current = next_node;
+        }
+    *s = NULL;
+    return 1;
 }
 int SetInsert(set *s, char *t)
 {
+    if (!s || !t)
+        return 0;
+    node *new_node = (node *)malloc(sizeof(node));
+    if (!new_node)
+        return 0;
+    new_node->string_len = strlen(t);
+    new_node->text = (char *)malloc(new_node->string_len + 1);
+    if (!new_node->text)
+    {
+        free(new_node);
+        return 0;
+    }
+    strcpy(new_node->text, t);
+    new_node->next = s->head;
+    s->head = new_node;
+    s->len++;
+    return 1;
 }
 int SetErase(set *s, char *t)
 {
+    if (!s || !t || !s->head)
+        return 0;
+    node *current = s->head;
+    node *previous = NULL;
+    while (current != NULL)
+    {
+        if (strcmp(current->text, t) == 0)
+        {
+            if (previous == NULL)
+            {
+                s->head = current->next;
+            }
+            else
+            {
+                previous->next = current->next;
+            }
+            free(current->text);
+            free(current);
+            s->len--;
+            return 1;
+        }
+        previous = current;
+        current = current->next;
+    }
+    return 0;
 }
 int SetClear(set *s)
 {
+    if(!s)
+        return 0;
+    node* current = s->head;
+    node* next_node;
+    while(current != NULL)
+    {
+        next_node = current->next;
+        free(current->text);
+        free(current);
+        current = next_node;
+    }
+    s->head = NULL;
+    s->len = 0;
+    return 1;
 }
 int SetFind(set *s, char *t)
 {
+    if (!s || !t)
+        return 0;
+    node *current = s->head;
+    while (current != NULL)
+    {
+        if (strcmp(current->text, t) == 0)
+        {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
 }
-int SetSize(set s, char *t)
+int SetSize(set s)
 {
+   return s.len;
 }
 int SetUnion(set *sa, set *sb, set *sc)
 {
+    if (!sa || !sb || !sc)
+        return 0;
+    node *current = sa->head;
+    while (current != NULL)
+    {
+        SetInsert(sc, current->text);
+        current = current->next;
+    }
+    current = sb->head;
+    while (current != NULL)
+    {
+        if (!SetFind(sc, current->text))
+        {
+            SetInsert(sc, current->text);
+        }
+        current = current->next;
+    }
+    return 1;
 }
 void RandomInsert(set *s)
 {
