@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define BUCKET_CNT (1u << 20)
 
 struct NODE
 {
     char *text;
     long string_len;
     struct NODE *next;
+    struct NODE *hash_next;
 };
 typedef struct NODE node;
 
@@ -16,6 +18,8 @@ struct SET
     node *head;
 };
 typedef struct SET set;
+
+static node *bucket[BUCKET_CNT];
 
 int InitSet(set **);
 int DestroySet(set **);
@@ -28,6 +32,9 @@ int SetUnion(set *, set *, set *);
 void RandomInsert(set *);
 void RandomFind(set *);
 void RandomErase(set *);
+static inline unsigned int hash_text(const char *, size_t);
+static void link_node(set *, node *);
+static void unlink_bucket(node *);
 
 int main()
 {
@@ -72,10 +79,17 @@ int SetInsert(set *s, char *t)
 {
     if (!s || !t)
         return 0;
+
+    size_t tlen = strlen(t);
+    unsigned int h = hash_text(t, tlen);
+    for (node *p = bucket[h]; p; p = p->hash_next)
+        if (p->string_len == tlen && memcmp(p->text, t, tlen) == 0)
+            return 1;
+
     node *new_node = (node *)malloc(sizeof(node));
     if (!new_node)
         return 0;
-    new_node->string_len = strlen(t);
+    new_node->string_len = tlen;
     new_node->text = (char *)malloc(new_node->string_len + 1);
     if (!new_node->text)
     {
@@ -85,6 +99,7 @@ int SetInsert(set *s, char *t)
     strcpy(new_node->text, t);
     new_node->next = s->head;
     s->head = new_node;
+    link_node(s, new_node);
     s->len++;
     return 1;
 }
@@ -143,17 +158,10 @@ int SetFind(set *s, char *t)
         return 0;
     node *current = s->head;
     long dest_len = strlen(t);
-    while (current != NULL)
-    {
-        if (current->string_len == dest_len)
-        {
-            if (strcmp(current->text, t) == 0)
-            {
-                return 1;
-            }
-        }
-        current = current->next;
-    }
+    unsigned int h = hash_text(t, dest_len);
+    for (node *p = bucket[h]; p; p = p->hash_next)
+        if (p->string_len == dest_len && memcmp(p->text, t, dest_len) == 0)
+            return 1;
     return 0;
 }
 int SetSize(set s)
@@ -279,4 +287,32 @@ void RandomErase(set *s)
     printf("\nErased: %d / 500000\n", erased);
     fclose(fp);
     return;
+}
+static inline unsigned int hash_text(const char *s, size_t len)
+{
+    unsigned int h = 0x811c9dc5u;
+    for (size_t i = 0; i < len; ++i)
+    {
+        h ^= (char)s[i];
+        h *= 0x01000193u;
+    }
+    return h & (BUCKET_CNT - 1);
+}
+static void link_node(set *s, node *p)
+{
+    p->next = s->head;
+    s->head = p;
+
+    unsigned int h = hash_text(p->text, p->string_len);
+    p->hash_next = bucket[h];
+    bucket[h] = p;
+    s->len++;
+}
+static void unlink_bucket(node *target)
+{
+    unsigned int h = hash_text(target->text, target->string_len);
+    node **link = &bucket[h];
+    while (*link != target)
+        link = &(*link)->hash_next;
+    *link = target->hash_next;
 }
