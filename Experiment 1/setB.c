@@ -33,7 +33,7 @@ void RandomInsert(set *);
 void RandomFind(set *);
 void RandomErase(set *);
 static inline unsigned int hash_text(const char *, size_t);
-static void link_node(set *, node *);
+static void link_node(set *, node *, unsigned int);
 static void unlink_bucket(node *);
 
 int main()
@@ -97,41 +97,42 @@ int SetInsert(set *s, char *t)
         return 0;
     }
     strcpy(new_node->text, t);
-    new_node->next = s->head;
-    s->head = new_node;
-    link_node(s, new_node);
-    s->len++;
+    link_node(s, new_node, h);
     return 1;
 }
 int SetErase(set *s, char *t)
 {
     if (!s || !t || !s->head)
         return 0;
-    node *current = s->head;
-    node *previous = NULL;
-    long dest_len = strlen(t);
-    while (current != NULL)
+    size_t tlen = strlen(t);
+    unsigned int h = hash_text(t, tlen);
+    node *prev = NULL;
+    for (node *p = bucket[h]; p; prev = p, p = p->hash_next)
     {
-        if (current->string_len == dest_len)
+        if (p->string_len == tlen && memcmp(p->text, t, tlen) == 0)
         {
-            if (strcmp(current->text, t) == 0)
+            // remove from hash
+            if (prev == NULL)
+                bucket[h] = p->hash_next;
+            else
+                prev->hash_next = p->hash_next;
+            // remove from main linklist
+            node *cur = s->head, *prev_node = NULL;
+            while (cur != p)
             {
-                if (previous == NULL)
-                {
-                    s->head = current->next;
-                }
-                else
-                {
-                    previous->next = current->next;
-                }
-                free(current->text);
-                free(current);
-                s->len--;
-                return 1;
+                prev_node = cur;
+                cur = cur->next;
             }
+            if (!prev_node)
+                s->head = p->next;
+            else
+                prev_node->next = p->next;
+
+            free(p->text);
+            free(p);
+            s->len--;
+            return 1;
         }
-        previous = current;
-        current = current->next;
     }
     return 0;
 }
@@ -298,14 +299,12 @@ static inline unsigned int hash_text(const char *s, size_t len)
     }
     return h & (BUCKET_CNT - 1);
 }
-static void link_node(set *s, node *p)
+static void link_node(set *s, node *p, unsigned int hash)
 {
     p->next = s->head;
     s->head = p;
-
-    unsigned int h = hash_text(p->text, p->string_len);
-    p->hash_next = bucket[h];
-    bucket[h] = p;
+    p->hash_next = bucket[hash];
+    bucket[hash] = p;
     s->len++;
 }
 static void unlink_bucket(node *target)
