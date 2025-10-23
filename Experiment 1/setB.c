@@ -7,6 +7,7 @@ struct NODE
 {
     char *text;
     long string_len;
+    struct NODE *prev;
     struct NODE *next;
     struct NODE *hash_next;
 };
@@ -34,20 +35,15 @@ void RandomFind(set *);
 void RandomErase(set *);
 static inline unsigned int hash_text(const char *, size_t);
 static void link_node(set *, node *, unsigned int);
-static void unlink_bucket(node *);
 
 int main()
 {
-    set *a, *b, *c;
+    set *a;
     InitSet(&a);
-    InitSet(&b);
-    InitSet(&c);
     RandomInsert(a);
     RandomFind(a);
     RandomErase(a);
     DestroySet(&a);
-    DestroySet(&b);
-    DestroySet(&c);
     return 0;
 }
 int InitSet(set **s)
@@ -91,6 +87,7 @@ int SetInsert(set *s, char *t)
         return 0;
     new_node->string_len = tlen;
     new_node->text = (char *)malloc(new_node->string_len + 1);
+    new_node->prev = NULL;
     if (!new_node->text)
     {
         free(new_node);
@@ -117,17 +114,12 @@ int SetErase(set *s, char *t)
             else
                 prev->hash_next = p->hash_next;
             // remove from main linklist
-            node *cur = s->head, *prev_node = NULL;
-            while (cur != p)
-            {
-                prev_node = cur;
-                cur = cur->next;
-            }
-            if (!prev_node)
-                s->head = p->next;
+            if (p->prev)
+                p->prev->next = p->next;
             else
-                prev_node->next = p->next;
-
+                s->head = p->next;
+            if (p->next)
+                p->next->prev = p->prev;
             free(p->text);
             free(p);
             s->len--;
@@ -302,16 +294,11 @@ static inline unsigned int hash_text(const char *s, size_t len)
 static void link_node(set *s, node *p, unsigned int hash)
 {
     p->next = s->head;
+    if(p->next)
+        p->next->prev = p;
+    p->prev = NULL;
     s->head = p;
     p->hash_next = bucket[hash];
     bucket[hash] = p;
     s->len++;
-}
-static void unlink_bucket(node *target)
-{
-    unsigned int h = hash_text(target->text, target->string_len);
-    node **link = &bucket[h];
-    while (*link != target)
-        link = &(*link)->hash_next;
-    *link = target->hash_next;
 }
