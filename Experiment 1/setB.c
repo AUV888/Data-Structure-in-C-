@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define BUCKET_CNT (1u << 20)
 
 struct NODE
 {
     char *text;
     long string_len;
+    struct NODE *prev;
     struct NODE *next;
+    struct NODE *hash_next;
 };
 typedef struct NODE node;
 
@@ -16,6 +19,8 @@ struct SET
     node *head;
 };
 typedef struct SET set;
+
+static node *bucket[BUCKET_CNT];
 
 int InitSet(set **);
 int DestroySet(set **);
@@ -28,19 +33,17 @@ int SetUnion(set *, set *, set *);
 void RandomInsert(set *);
 void RandomFind(set *);
 void RandomErase(set *);
+static inline unsigned int hash_text(const char *, size_t);
+static void link_node(set *, node *, unsigned int);
 
 int main()
 {
-    set *a, *b, *c;
+    set *a;
     InitSet(&a);
-    InitSet(&b);
-    InitSet(&c);
     RandomInsert(a);
     RandomFind(a);
     RandomErase(a);
     DestroySet(&a);
-    DestroySet(&b);
-    DestroySet(&c);
     return 0;
 }
 int InitSet(set **s)
@@ -72,51 +75,56 @@ int SetInsert(set *s, char *t)
 {
     if (!s || !t)
         return 0;
+
+    size_t tlen = strlen(t);
+    unsigned int h = hash_text(t, tlen);
+    for (node *p = bucket[h]; p; p = p->hash_next)
+        if (p->string_len == tlen && memcmp(p->text, t, tlen) == 0)
+            return 1;
+
     node *new_node = (node *)malloc(sizeof(node));
     if (!new_node)
         return 0;
-    new_node->string_len = strlen(t);
+    new_node->string_len = tlen;
     new_node->text = (char *)malloc(new_node->string_len + 1);
+    new_node->prev = NULL;
     if (!new_node->text)
     {
         free(new_node);
         return 0;
     }
     strcpy(new_node->text, t);
-    new_node->next = s->head;
-    s->head = new_node;
-    s->len++;
+    link_node(s, new_node, h);
     return 1;
 }
 int SetErase(set *s, char *t)
 {
     if (!s || !t || !s->head)
         return 0;
-    node *current = s->head;
-    node *previous = NULL;
-    long dest_len = strlen(t);
-    while (current != NULL)
+    size_t tlen = strlen(t);
+    unsigned int h = hash_text(t, tlen);
+    node *prev = NULL;
+    for (node *p = bucket[h]; p; prev = p, p = p->hash_next)
     {
-        if (current->string_len == dest_len)
+        if (p->string_len == tlen && memcmp(p->text, t, tlen) == 0)
         {
-            if (strcmp(current->text, t) == 0)
-            {
-                if (previous == NULL)
-                {
-                    s->head = current->next;
-                }
-                else
-                {
-                    previous->next = current->next;
-                }
-                free(current->text);
-                free(current);
-                s->len--;
-                return 1;
-            }
+            // remove from hash
+            if (prev == NULL)
+                bucket[h] = p->hash_next;
+            else
+                prev->hash_next = p->hash_next;
+            // remove from main linklist
+            if (p->prev)
+                p->prev->next = p->next;
+            else
+                s->head = p->next;
+            if (p->next)
+                p->next->prev = p->prev;
+            free(p->text);
+            free(p);
+            s->len--;
+            return 1;
         }
-        previous = current;
-        current = current->next;
     }
     return 0;
 }
@@ -143,17 +151,10 @@ int SetFind(set *s, char *t)
         return 0;
     node *current = s->head;
     long dest_len = strlen(t);
-    while (current != NULL)
-    {
-        if (current->string_len == dest_len)
-        {
-            if (strcmp(current->text, t) == 0)
-            {
-                return 1;
-            }
-        }
-        current = current->next;
-    }
+    unsigned int h = hash_text(t, dest_len);
+    for (node *p = bucket[h]; p; p = p->hash_next)
+        if (p->string_len == dest_len && memcmp(p->text, t, dest_len) == 0)
+            return 1;
     return 0;
 }
 int SetSize(set s)
@@ -279,4 +280,25 @@ void RandomErase(set *s)
     printf("\nErased: %d / 500000\n", erased);
     fclose(fp);
     return;
+}
+static inline unsigned int hash_text(const char *s, size_t len)
+{
+    unsigned int h = 0x811c9dc5u;
+    for (size_t i = 0; i < len; ++i)
+    {
+        h ^= (char)s[i];
+        h *= 0x01000193u;
+    }
+    return h & (BUCKET_CNT - 1);
+}
+static void link_node(set *s, node *p, unsigned int hash)
+{
+    p->next = s->head;
+    if(p->next)
+        p->next->prev = p;
+    p->prev = NULL;
+    s->head = p;
+    p->hash_next = bucket[hash];
+    bucket[hash] = p;
+    s->len++;
 }
