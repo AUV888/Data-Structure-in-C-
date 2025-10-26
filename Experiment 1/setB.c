@@ -68,6 +68,7 @@ int DestroySet(set **s)
         free(current);
         current = next_node;
     }
+    memset(bucket, NULL, sizeof(bucket));
     *s = NULL;
     return 1;
 }
@@ -141,6 +142,7 @@ int SetClear(set *s)
         free(current);
         current = next_node;
     }
+    memset(bucket, NULL, sizeof(bucket));
     s->head = NULL;
     s->len = 0;
     return 1;
@@ -294,7 +296,7 @@ static inline unsigned int hash_text(const char *s, size_t len)
 static void link_node(set *s, node *p, unsigned int hash)
 {
     p->next = s->head;
-    if(p->next)
+    if (p->next)
         p->next->prev = p;
     p->prev = NULL;
     s->head = p;
