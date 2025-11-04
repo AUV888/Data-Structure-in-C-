@@ -40,3 +40,6 @@ do_not_upload/
 slides/
 *.lnk
 408计算机历年真题/
+/Experiment 2/nano
+/Experiment 2/pieceTreeTextBuffer
+/Experiment 2/rope-src
