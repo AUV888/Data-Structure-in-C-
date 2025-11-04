@@ -111,9 +111,12 @@ BiTree InitBinTree()
 //    注意是没有头结点的二叉树
 int DestroyBinTree(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-
-    return 0;
+    if (bt == NULL)
+        return 0;
+    DestroyBinTree(bt->left);
+    DestroyBinTree(bt->right);
+    free(bt);
+    return 1;
 }
 
 // 3.1 从先序遍历的字符串中创建二叉树，将创建的二叉树用返回值返回到调用者
@@ -128,24 +131,36 @@ BiTree CreateBinTree(char *preordString, int *nStringStart)
 //    返回值：空树返回false，非空树返回true
 int PreOrderTraverse(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    printf("%c ", bt->data);
+    PreOrderTraverse(bt->left);
+    PreOrderTraverse(bt->right);
+    return 1;
 }
 
 // 4.2 中序遍历二叉树，将结果输出到控制台（stdc::out）
 //    返回值：空树返回false，非空树返回true
 int InOrderTraverse(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    InOrderTraverse(bt->left);
+    printf("%c ", bt->data);
+    InOrderTraverse(bt->right);
+    return 1;
 }
 
 // 4.3 后序遍历二叉树，将结果输出到控制台（stdc::out）
 //    返回值：空树返回false，非空树返回true
 int PostOrderTraverse(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    PostOrderTraverse(bt->left);
+    PostOrderTraverse(bt->right);
+    printf("%c ", bt->data);
+    return 1;
 }
 
 // 4.4 层序遍历二叉树，将结果输出到控制台（stdc::out）
