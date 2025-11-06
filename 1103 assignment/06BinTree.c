@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef char ElemType;
 
@@ -123,8 +124,23 @@ int DestroyBinTree(BiTree bt)
 //     先序遍历的字符串中用字符'!'表示空结点
 BiTree CreateBinTree(char *preordString, int *nStringStart)
 {
-    // 将下面的代码修改为正确的代码
-    return NULL;
+    char ch = preordString[*nStringStart];
+    (*nStringStart)++; // 立刻消耗掉当前字符
+
+    if (ch == '!' || ch == '\0')
+    {
+        return NULL;
+    }
+    else
+    {
+        BiTree T = (BiTree)malloc(sizeof(BiTNode));
+        T->data = ch;
+        // 递归创建左子树
+        T->left = CreateBinTree(preordString, nStringStart); // 传递同一个指针
+        // 递归创建右子树
+        T->right = CreateBinTree(preordString, nStringStart); // 继续传递同一个指针
+        return T;
+    }
 }
 
 // 4.1 先序遍历二叉树，将结果输出到控制台（stdc::out）
@@ -167,27 +183,72 @@ int PostOrderTraverse(BiTree bt)
 //    返回值：空树返回false，非空树返回true
 int LevelOrderTraverse(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    typedef struct sQueue
+    {
+        BiTree node;
+        struct sQueue *next;
+    } qnode, *qpoint; // 构建链式队列
+    qpoint h = (qnode *)malloc(sizeof(qnode));
+    if (!h)
+        return 0;
+    qpoint last = h;
+    h->node = bt;
+    h->next = NULL;   // 将链式队列初始化
+    while (h != NULL) // 只要队列不空
+    {
+        printf("%c ", h->node->data); // 先打印队列头
+        if (h->node->left != NULL)    // 如果有左子节点，入队
+        {
+            qpoint newNode = (qpoint)malloc(sizeof(qnode));
+            if (!newNode)
+                return 0;
+            newNode->node = h->node->left;
+            newNode->next = NULL;
+            last->next = newNode;
+            last = newNode;
+        }
+        if (h->node->right != NULL) // 如果有右子节点，入队
+        {
+            qpoint newNode = (qpoint)malloc(sizeof(qnode));
+            if (!newNode)
+                return 0;
+            newNode->node = h->node->right;
+            newNode->next = NULL;
+            last->next = newNode;
+            last = newNode;
+        }
+        qpoint dequeue = h; // 队列头出队
+        h = dequeue->next;
+        free(dequeue);
+    }
+    return 1;
 }
 
 // 5 计算树的结点数目
 int BiTreeNodeCount(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    return 1 + BiTreeNodeCount(bt->left) + BiTreeNodeCount(bt->right);
 }
 
 // 6 计算树的叶子结点数目
 int BiTreeLeavesCount(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    if (bt->left == NULL && bt->right == NULL)
+        return 1;
+    return BiTreeLeavesCount(bt->left) + BiTreeLeavesCount(bt->right);
 }
 
 // 7 计算树的层数
 int BiTreeLevelCount(BiTree bt)
 {
-    // 将下面的代码修改为正确的代码
-    return 0;
+    if (bt == NULL)
+        return 0;
+    int lc = BiTreeLevelCount(bt->left), rc = BiTreeLevelCount(bt->right);
+    return 1 + (lc > rc ? lc : rc);
 }
