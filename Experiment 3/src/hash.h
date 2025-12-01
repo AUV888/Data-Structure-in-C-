@@ -3,7 +3,7 @@
 
 #define TABLE_MAX_SIZE 0x40000
 
-inline unsigned int hash_text(const char *str, unsigned int len);
+unsigned int hash_text(const char *str, unsigned int len);
 
 typedef struct HASH_NODE
 {
@@ -11,6 +11,12 @@ typedef struct HASH_NODE
     struct HASH_NODE *next;
 } node;
 
+typedef struct HSET
+{
+    node *bucket[TABLE_MAX_SIZE];
+    unsigned long size;
+} hset;
 
+hset *create_hset(void);
 
 #endif
