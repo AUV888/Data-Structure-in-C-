@@ -1,7 +1,7 @@
 #ifndef HASH_H
 #define HASH_H
 
-#define TABLE_MAX_SIZE 0x40000
+#define TABLE_MAX_SIZE 0x80000
 
 unsigned int hash_text(const char *str, unsigned int len);
 
