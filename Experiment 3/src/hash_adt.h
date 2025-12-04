@@ -5,8 +5,8 @@
 
 int InitSet(hset *s);
 int DestroySet(hset **s);
-int SetInsert(hset *s, int val);
-int SetErase(hset *s, int val);
+int SetInsert(hset *s, char* src);
+int SetErase(hset *s, char* src);
 int SetClear(hset *s);
 int SetFind(hset *s);
 unsigned long SetSize(hset s);

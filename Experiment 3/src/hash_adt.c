@@ -31,10 +31,10 @@ int DestroySet(hset **s)
     *s = NULL;
     return 1;
 }
-int SetInsert(hset *s, int val)
+int SetInsert(hset *s, char *src)
 {
 }
-int SetErase(hset *s, int val)
+int SetErase(hset *s, char *src)
 {
 }
 int SetClear(hset *s)
