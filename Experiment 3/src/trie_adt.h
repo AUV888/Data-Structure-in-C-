@@ -3,12 +3,12 @@
 
 #include "trie.h"
 
-int InitSet(tset s);
-int DestroySet(tset s);
-int SetInsert(tset s, int val);
-int SetErase(tset s, int val);
-int SetClear(tset s);
-int SetFind(tset s);
-unsigned long SetSize(tset s);
+// int InitSet(tset s);
+int tDestroySet(tset *s);
+int tSetInsert(tset *s, char *src);
+int tSetErase(tset s, char *src);
+int tSetClear(tset s);
+int tSetFind(tset s);
+unsigned long tSetSize(tset s);
 
 #endif
