@@ -129,7 +129,7 @@ int tSetInsert(tset *s, char *src)
                 else
                     father->next = cur;
             }
-        }
+        }//
         father = cur;
     }
     return 1;
@@ -176,6 +176,15 @@ int tSetErase(tset *s, char *src)
 /*
 int tSetClear(tset s)
 {
+    while(s)
+    {
+        tset next_layer = s->next;
+        tset sib = s->sib;
+        free(s);
+        s = sib;
+        if (!s)
+            s = next_layer;
+    }
     return 1;
 }
 */
@@ -204,5 +213,29 @@ int tSetFind(tset s, char *src)
 }
 unsigned long tSetSize(tset s)
 {
-    return 1ULL;
+    if (!s)
+        return 0ULL;
+
+    unsigned long count = 0;
+    Queue *q = createQueue();
+    enqueue(q, s);
+
+    while (!isEmpty(q))
+    {
+        tset node = dequeue(q);
+        if (!node)
+            continue;
+        // 约定：没有更深一层（next == NULL）的节点视作一个完整的元素（与 tSetErase 的回溯删除策略一致）
+        if (node->next == NULL)
+            ++count;
+
+        if (node->sib)
+            enqueue(q, node->sib);
+        if (node->next)
+            enqueue(q, node->next);
+    }
+
+    destroyQueue(q);
+    return count;
 }
+// ...existing code...
