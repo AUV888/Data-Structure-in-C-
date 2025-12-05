@@ -48,7 +48,7 @@ static void enqueue(Queue *q, tset val)
 static tset dequeue(Queue *q)
 {
     if (isEmpty(q))
-        return NULL; // 错误值，表示队列空
+        return NULL;
     QueueNode *temp = q->front;
     tset val = temp->data;
     q->front = q->front->next;
@@ -86,10 +86,13 @@ int tDestroySet(tset *s) // have problems, but ignore it first
         free(tmp);
     }
     destroyQueue(q);
+    *s = NULL;
     return 1;
 }
 int tSetInsert(tset *s, char *src)
 {
+    if (!s || !src)
+        return 0;
     size_t slen = strlen(src);
     tset father = NULL;
     for (long long i = slen - 1; i >= 0; i--)
@@ -131,16 +134,72 @@ int tSetInsert(tset *s, char *src)
     }
     return 1;
 }
-int tSetErase(tset s, char *src)
+int tSetErase(tset *s, char *src)
 {
+    if (!(*s) || !src)
+        return 0;
+    size_t slen = strlen(src);
+    tset cur = *s;
+    Queue *q = createQueue();
+    for (long long i = slen - 1; i >= 0; i--)
+    {
+        char ch = src[i];
+        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
+        while (cur->sib)
+        {
+            if (cur->d == ch)
+                break;
+            cur = cur->sib;
+        }
+        int notSharedNode = cur->sib == NULL;
+        if (cur->d != ch)
+            return 0;
+        tset tmp = cur;
+        cur = cur->next;
+        if (notSharedNode)
+            enqueue(q, tmp);
+        else
+        {
+            while (!isEmpty(q))
+                dequeue(q);
+        }
+    }
+    while (!isEmpty(q))
+    {
+        tset tmp = dequeue(q);
+        if (tmp == *s)
+            *s = NULL;
+        free(tmp);
+    }
     return 1;
 }
+/*
 int tSetClear(tset s)
 {
     return 1;
 }
-int tSetFind(tset s)
+*/
+int tSetFind(tset s, char *src)
 {
+    if (!s || !src)
+        return 0;
+    size_t slen = strlen(src);
+    tset cur = s;
+    for (long long i = slen - 1; i >= 0; i--)
+    {
+        char ch = src[i];
+        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
+        while (cur->sib)
+        {
+            if (cur->d == ch)
+                break;
+            cur = cur->sib;
+        }
+        if (cur->d != ch)
+            return 0;
+        else
+            cur = cur->next;
+    }
     return 1;
 }
 unsigned long tSetSize(tset s)
