@@ -8,7 +8,9 @@ unsigned int hash_text(const char *str, unsigned int len)
     unsigned char group[4] = {0, 0, 0, 0};
     for (unsigned int i = 0; i < len; i++)
     {
-        group[i % 4] ^= (unsigned char)str[i]; // use xor rather than +
+        char ch = str[i];
+        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch; // lowercase
+        group[i % 4] ^= (unsigned char)ch;            // use xor rather than +
     }
     for (unsigned int i = 0; i < 4; i++)
     {

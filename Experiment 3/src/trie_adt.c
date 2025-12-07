@@ -95,10 +95,12 @@ int tSetInsert(tset *s, char *src)
         return 0;
     size_t slen = strlen(src);
     tset father = NULL;
+    int diff = 0;
     for (long long i = slen - 1; i >= 0; i--)
     {
         char ch = src[i];
-        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;    // lowercase
+        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch; // lowercase
+    L1:
         tset cur = (father == NULL ? *s : father->next); // cur is in this layer
         char flag = (cur == NULL);                       // this layer has nothing?
         while (!flag && cur->sib)                        // find char in all siblings
@@ -110,6 +112,7 @@ int tSetInsert(tset *s, char *src)
 
         if (flag || cur->d != ch) // haven't matched char or don't even have siblings
         {
+            diff++;
             tset newNode = (tset)malloc(sizeof(tnode));
             if (!newNode)
                 return 0;
@@ -129,10 +132,16 @@ int tSetInsert(tset *s, char *src)
                 else
                     father->next = cur;
             }
-        }//
+        }
         father = cur;
+        if (i == 0)
+        {
+            i--;
+            ch = '\0';
+            goto L1;
+        }
     }
-    return 1;
+    return !!diff;
 }
 int tSetErase(tset *s, char *src)
 {
@@ -198,6 +207,7 @@ int tSetFind(tset s, char *src)
     {
         char ch = src[i];
         ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
+    L2:
         while (cur->sib)
         {
             if (cur->d == ch)
@@ -208,34 +218,34 @@ int tSetFind(tset s, char *src)
             return 0;
         else
             cur = cur->next;
+        if (i == 0)
+        {
+            i--;
+            ch = '\0';
+            goto L2;
+        }
     }
     return 1;
 }
 unsigned long tSetSize(tset s)
 {
     if (!s)
-        return 0ULL;
-
-    unsigned long count = 0;
+        return 0;
+    unsigned long cnt = 0;
     Queue *q = createQueue();
     enqueue(q, s);
 
     while (!isEmpty(q))
     {
-        tset node = dequeue(q);
-        if (!node)
-            continue;
-        // 约定：没有更深一层（next == NULL）的节点视作一个完整的元素（与 tSetErase 的回溯删除策略一致）
-        if (node->next == NULL)
-            ++count;
-
-        if (node->sib)
-            enqueue(q, node->sib);
-        if (node->next)
-            enqueue(q, node->next);
+        tset head = q->front->data;
+        if (head->sib)
+            enqueue(q, head->sib);
+        if (head->next)
+            enqueue(q, head->next);
+        if (head->next == NULL) // this is the end of a string
+            cnt++;
+        dequeue(q);
     }
-
     destroyQueue(q);
-    return count;
+    return cnt;
 }
-// ...existing code...

@@ -38,7 +38,7 @@ int SetInsert(hset *s, char *src)
 
     unsigned long hash = hash_text(src, strlen(src));
     node *cur = s->bucket[hash];
-    
+
     while (cur)
     {
         if (strcmp(cur->text, src) == 0)
@@ -49,14 +49,14 @@ int SetInsert(hset *s, char *src)
     node *n = (node *)malloc(sizeof(node));
     if (!n)
         return 0;
-    
+
     n->text = (char *)malloc(strlen(src) + 1);
     if (!n->text)
     {
         free(n);
         return 0;
     }
-    
+
     strcpy(n->text, src);
     n->next = s->bucket[hash];
     s->bucket[hash] = n;
@@ -120,7 +120,7 @@ int SetFind(hset *s, char *src)
         return 0;
     unsigned long hash = hash_text(src, strlen(src));
     node *cur = s->bucket[hash];
-    
+
     while (cur)
     {
         if (strcmp(cur->text, src) == 0)
@@ -130,7 +130,10 @@ int SetFind(hset *s, char *src)
     return 0;
 }
 
-unsigned long SetSize(hset s)
+/*shouldn't use hset s for arugment since it will copy entire structure
+ *as argument thus causing segmentation fault!!!
+ */
+unsigned long SetSize(hset *s)
 {
-    return s.size;
+    return s->size;
 }
