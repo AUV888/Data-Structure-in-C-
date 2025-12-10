@@ -1,71 +1,14 @@
 #include "trie_adt.h"
 #include <stdlib.h>
 #include <string.h>
+#include "stackqueue.h"
+#define DIRECT_POINTER -1
+#define RIP 1
 /*
 int InitSet(tset s)
 {
 }
 */
-
-typedef struct QueueNode
-{
-    tset data;
-    struct QueueNode *next;
-} QueueNode;
-
-typedef struct Queue
-{
-    QueueNode *front;
-    QueueNode *rear;
-} Queue;
-
-static Queue *createQueue(void)
-{
-    Queue *q = (Queue *)malloc(sizeof(Queue));
-    q->front = NULL;
-    q->rear = NULL;
-    return q;
-}
-
-static int isEmpty(Queue *q)
-{
-    return q->front == NULL;
-}
-static void enqueue(Queue *q, tset val)
-{
-    QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
-    newNode->data = val;
-    newNode->next = NULL;
-    if (q->rear == NULL)
-    {
-        q->front = q->rear = newNode;
-        return;
-    }
-    q->rear->next = newNode;
-    q->rear = newNode;
-}
-
-static tset dequeue(Queue *q)
-{
-    if (isEmpty(q))
-        return NULL;
-    QueueNode *temp = q->front;
-    tset val = temp->data;
-    q->front = q->front->next;
-    if (q->front == NULL)
-        q->rear = NULL;
-    free(temp);
-    return val;
-}
-
-static void destroyQueue(Queue *q)
-{
-    while (!isEmpty(q))
-    {
-        dequeue(q);
-    }
-    free(q);
-}
 
 int tDestroySet(tset *s) // have problems, but ignore it first
 {
@@ -248,4 +191,99 @@ unsigned long tSetSize(tset s)
     }
     destroyQueue(q);
     return cnt;
+}
+
+void tSetWildCardFind(tset s, char *src, char **res, int *retsize) // VERY BUGGY! DON'T EVEN TRY TO RUN!!!
+{
+    if (!s || !src || !res || !retsize)
+        return;
+    size_t slen = strlen(src);
+    tset cur = s;
+    cstack *cst = createCStack();
+    // char come_from = DIRECT_POINTER;
+    for (long long i = slen - 1; i >= 0; i--)
+    {
+        char ch = src[i];
+        ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
+        if (ch == '*')
+        {
+            FoundWildcard(cur, res, retsize);
+            return;
+        }
+
+    L2:
+        while (cur->sib)
+        {
+            if (cur->d == ch)
+                break;
+            cur = cur->sib;
+        }
+        if (cur->d != ch)
+            return 0;
+        else
+            cur = cur->next;
+        if (i == 0)
+        {
+            i--;
+            ch = '\0';
+            goto L2;
+        }
+        else
+            pushCStack(cst, ch);
+    }
+}
+static void FoundWildcard(tset start, char **res, int *retsize)
+{
+    pstack *rip = createPStack();
+    cstack *c = createCStack();
+    char ComeFrom = DIRECT_POINTER;
+    tset cur = start;
+    pushPStack(rip, cur);
+    while (!isEmptyPStack(rip))
+    {
+        if (ComeFrom == DIRECT_POINTER)
+        {
+            pushCStack(c, cur->d);
+            pushPStack(rip, cur);
+            if (cur->next)       // have child
+                cur = cur->next; // go to explore child
+            else                 // no child
+            {
+                // copy all chars in cstack to res
+                // and self-add retsize
+                int len = 0;
+                CStackNode *temp = c->top;
+                while (temp)
+                {
+                    len++;
+                    temp = temp->next;
+                }
+                temp = c->top;
+                char *str = (char *)malloc(len + 1);
+                int i = 0;
+                for (i = 0; i < len; i++)
+                    str[i] = temp->data;
+                str[i] = '\0';
+                res[*retsize] = str;
+                (*retsize)++;
+                ComeFrom = RIP;
+                popCStack(c);         // pop out current char
+                cur = popPStack(rip); // go to father
+            }
+        }
+        else // come from poping stack
+        {
+            if (cur->sib) // have siblings
+            {
+                pushPStack(rip, cur);
+                ComeFrom = DIRECT_POINTER;
+                cur = cur->sib;
+            }
+            else // nothing to do in this layer
+            {
+                popCStack(c);
+                cur = popPStack(rip);
+            }
+        }
+    }
 }
