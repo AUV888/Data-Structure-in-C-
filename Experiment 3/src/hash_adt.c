@@ -120,12 +120,13 @@ int SetFind(hset *s, char *src)
         return 0;
     unsigned long hash = hash_text(src, strlen(src));
     node *cur = s->bucket[hash];
-
+    int cnt = 1;
     while (cur)
     {
         if (strcmp(cur->text, src) == 0)
-            return 1;
+            return cnt;
         cur = cur->next;
+        cnt++;
     }
     return 0;
 }

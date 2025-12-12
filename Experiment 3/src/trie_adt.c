@@ -203,6 +203,7 @@ int tSetFind(tset s, char *src)
         return 0;
     size_t slen = strlen(src);
     tset cur = s;
+    int searchlen = 1;
     for (long long i = slen - 1; i >= 0; i--)
     {
         char ch = src[i];
@@ -213,11 +214,15 @@ int tSetFind(tset s, char *src)
             if (cur->d == ch)
                 break;
             cur = cur->sib;
+            searchlen++;
         }
         if (cur->d != ch)
             return 0;
         else
+        {
             cur = cur->next;
+            searchlen++;
+        }
         if (i == 0)
         {
             i--;
@@ -225,7 +230,7 @@ int tSetFind(tset s, char *src)
             goto L2;
         }
     }
-    return 1;
+    return searchlen;
 }
 unsigned long tSetSize(tset s)
 {

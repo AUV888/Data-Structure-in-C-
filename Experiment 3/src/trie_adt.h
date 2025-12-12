@@ -8,6 +8,8 @@ int tDestroySet(tset *s);
 int tSetInsert(tset *s, char *src);
 int tSetErase(tset *s, char *src);
 // int tSetClear(tset s);
+/*@return Search Length
+ */
 int tSetFind(tset s, char *src);
 unsigned long tSetSize(tset s);
 

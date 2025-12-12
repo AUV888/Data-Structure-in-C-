@@ -8,6 +8,8 @@ int DestroySet(hset **s);
 int SetInsert(hset *s, char *src);
 int SetErase(hset *s, char *src);
 int SetClear(hset *s);
+/*@return Nums of conflicts met
+ */
 int SetFind(hset *s, char *src);
 unsigned long SetSize(hset *s);
 /*shouldn't use hset s for arugment since it will copy entire structure
