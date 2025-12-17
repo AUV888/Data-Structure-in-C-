@@ -1,6 +1,7 @@
 #include "trie_adt.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 /*
 int InitSet(tset s)
 {
@@ -69,6 +70,7 @@ static void destroyQueue(Queue *q)
 
 int tDestroySet(tset *s) // have problems, but ignore it first
 {
+    unsigned long long step = 0;
     if (!(*s))
         return 0;
     Queue *q = createQueue();
@@ -84,6 +86,9 @@ int tDestroySet(tset *s) // have problems, but ignore it first
             enqueue(q, tmp->next);
         tmp = dequeue(q);
         free(tmp);
+        step++;
+        if (step % 1000 == 0)
+            printf("Deleting: %llu\r", step);
     }
     destroyQueue(q);
     *s = NULL;
@@ -145,40 +150,35 @@ int tSetInsert(tset *s, char *src)
 }
 int tSetErase(tset *s, char *src)
 {
-    if (!(*s) || !src)
+    if (!s || !src)
         return 0;
     size_t slen = strlen(src);
     tset cur = *s;
-    Queue *q = createQueue();
     for (long long i = slen - 1; i >= 0; i--)
     {
         char ch = src[i];
         ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
-        while (cur->sib)
+    L2:
+        while (cur && cur->sib)
         {
             if (cur->d == ch)
                 break;
             cur = cur->sib;
         }
-        int notSharedNode = cur->sib == NULL;
-        if (cur->d != ch)
+        if (!cur || cur->d != ch)
             return 0;
-        tset tmp = cur;
-        cur = cur->next;
-        if (notSharedNode)
-            enqueue(q, tmp);
         else
         {
-            while (!isEmpty(q))
-                dequeue(q);
+            if (cur->d == ch && cur->d == '\0')
+                cur->d = 1;
+            cur = cur->next;
         }
-    }
-    while (!isEmpty(q))
-    {
-        tset tmp = dequeue(q);
-        if (tmp == *s)
-            *s = NULL;
-        free(tmp);
+        if (i == 0)
+        {
+            i--;
+            ch = '\0';
+            goto L2;
+        }
     }
     return 1;
 }
@@ -209,14 +209,14 @@ int tSetFind(tset s, char *src)
         char ch = src[i];
         ch = ('A' <= ch && ch <= 'Z') ? ch + 32 : ch;
     L2:
-        while (cur->sib)
+        while (cur && cur->sib)
         {
             if (cur->d == ch)
                 break;
             cur = cur->sib;
             searchlen++;
         }
-        if (cur->d != ch)
+        if (!cur || cur->d != ch)
             return 0;
         else
         {
@@ -247,7 +247,7 @@ unsigned long tSetSize(tset s)
             enqueue(q, head->sib);
         if (head->next)
             enqueue(q, head->next);
-        if (head->next == NULL) // this is the end of a string
+        if (head->d == '\0') // this is the end of a string
             cnt++;
         dequeue(q);
     }
